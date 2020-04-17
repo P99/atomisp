@@ -125,7 +125,7 @@ void atomisp_acc_release(struct atomisp_sub_device *asd)
 	/* Unload all loaded acceleration binaries */
 	list_for_each_entry_safe(acc_fw, ta, &asd->acc.fw, list) {
 		list_del(&acc_fw->list);
-		ida_remove(&asd->acc.ida, acc_fw->handle);
+		ida_simple_remove(&asd->acc.ida, acc_fw->handle);
 		acc_free_fw(acc_fw);
 	}
 
@@ -175,12 +175,15 @@ int atomisp_acc_load_to_pipe(struct atomisp_sub_device *asd,
 		return -EFAULT;
 	}
 
+	/*
 	if (!ida_pre_get(&asd->acc.ida, GFP_KERNEL) ||
 	    ida_get_new_above(&asd->acc.ida, 1, &handle)) {
 		acc_free_fw(acc_fw);
 		return -ENOSPC;
 	}
+	*/
 
+	handle = ida_simple_get(&asd->acc.ida, 0, 1, GFP_KERNEL);
 	user_fw->fw_handle = handle;
 	acc_fw->handle = handle;
 	acc_fw->flags = user_fw->flags;
@@ -234,7 +237,7 @@ int atomisp_acc_unload(struct atomisp_sub_device *asd, unsigned int *handle)
 		return -EINVAL;
 
 	list_del(&acc_fw->list);
-	ida_remove(&asd->acc.ida, acc_fw->handle);
+	ida_simple_remove(&asd->acc.ida, acc_fw->handle);
 	acc_free_fw(acc_fw);
 
 	return 0;
