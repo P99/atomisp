@@ -16,9 +16,17 @@
 #define RTL_VERSION
 
 /* Cell name  */
+#ifndef IS_ISP_2401_MAMOIADA
 #define ISP_CELL_TYPE                          isp2400_mamoiada
+#else
+#define ISP_CELL_TYPE                          isp2401_mamoiada
+#endif
 #define ISP_VMEM                               simd_vmem
+#ifndef IS_ISP_2401_MAMOIADA
 #define _HRT_ISP_VMEM                          isp2400_mamoiada_simd_vmem
+#else
+#define _HRT_ISP_VMEM                          isp2401_mamoiada_simd_vmem
+#endif
 
 /* instruction pipeline depth */
 #define ISP_BRANCHDELAY                        5
@@ -180,10 +188,17 @@
 #define ISP_VEC_ALIGN                          ISP_VMEM_ALIGN
 
 /* HRT specific vector support */
+#ifndef IS_ISP_2401_MAMOIADA
 #define isp2400_mamoiada_vector_alignment         ISP_VEC_ALIGN
 #define isp2400_mamoiada_vector_elem_bits         ISP_VMEM_ELEMBITS
 #define isp2400_mamoiada_vector_elem_precision    ISP_VMEM_ELEM_PRECISION
 #define isp2400_mamoiada_vector_num_elems         ISP_VEC_NELEMS
+#else
+#define isp2401_mamoiada_vector_alignment         ISP_VEC_ALIGN
+#define isp2401_mamoiada_vector_elem_bits         ISP_VMEM_ELEMBITS
+#define isp2401_mamoiada_vector_elem_precision    ISP_VMEM_ELEM_PRECISION
+#define isp2401_mamoiada_vector_num_elems         ISP_VEC_NELEMS
+#endif
 
 /* register file sizes */
 #define ISP_RF0_SIZE        64
@@ -198,6 +213,7 @@
 #define ISP_RF9_SIZE        16
 #define ISP_RF10_SIZE       16
 #define ISP_RF11_SIZE       16
+#ifndef IS_ISP_2401_MAMOIADA
 #define ISP_VRF1_SIZE       24
 #define ISP_VRF2_SIZE       24
 #define ISP_VRF3_SIZE       24
@@ -206,6 +222,16 @@
 #define ISP_VRF6_SIZE       24
 #define ISP_VRF7_SIZE       24
 #define ISP_VRF8_SIZE       24
+#else
+#define ISP_VRF1_SIZE       32
+#define ISP_VRF2_SIZE       32
+#define ISP_VRF3_SIZE       32
+#define ISP_VRF4_SIZE       32
+#define ISP_VRF5_SIZE       32
+#define ISP_VRF6_SIZE       32
+#define ISP_VRF7_SIZE       32
+#define ISP_VRF8_SIZE       32
+#endif
 #define ISP_SRF1_SIZE       4
 #define ISP_SRF2_SIZE       64
 #define ISP_SRF3_SIZE       64

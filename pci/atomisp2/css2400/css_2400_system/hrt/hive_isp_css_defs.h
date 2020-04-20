@@ -15,7 +15,11 @@
 #ifndef _hive_isp_css_defs_h__
 #define _hive_isp_css_defs_h__
 
+#ifndef ISP2401
 #define HIVE_ISP_CSS_IS_2400B0_SYSTEM
+#else
+#define _HIVE_ISP_CSS_2401_SYSTEM     1
+#endif
 
 #define HIVE_ISP_CTRL_DATA_WIDTH     32
 #define HIVE_ISP_CTRL_ADDRESS_WIDTH  32
@@ -38,6 +42,22 @@
 
 #define CSS_DDR_WORD_BITS        HIVE_ISP_DDR_WORD_BITS
 #define CSS_DDR_WORD_BYTES       HIVE_ISP_DDR_WORD_BYTES
+
+#ifdef ISP2401
+/* settings used in applications */
+#define HIVE_XMEM_WIDTH            HIVE_ISP_DDR_WORD_BITS
+#define HIVE_VMEM_VECTOR_ELEMENTS  64
+#define HIVE_VMEM_ELEMENT_BITS     14
+#define HIVE_XMEM_ELEMENT_BITS     16
+#define HIVE_VMEM_VECTOR_BYTES (HIVE_VMEM_VECTOR_ELEMENTS*HIVE_XMEM_ELEMENT_BITS/8) /* used for # addr bytes for one vector */
+#define HIVE_XMEM_PACKED_WORD_VMEM_ELEMENTS (HIVE_XMEM_WIDTH/HIVE_VMEM_ELEMENT_BITS)
+#define HIVE_XMEM_WORD_VMEM_ELEMENTS        (HIVE_XMEM_WIDTH/HIVE_XMEM_ELEMENT_BITS)
+#define XMEM_INT_SIZE              4
+
+
+
+#define HIVE_ISYS_INP_BUFFER_BYTES (64*1024)  /* 64 kByte = 2k words (of 256 bits) */
+#endif
 
 /* If HIVE_ISP_DDR_BASE_OFFSET is set to a non-zero value, the wide bus just before the DDRAM gets an extra dummy port where         */
 /* address range 0 .. HIVE_ISP_DDR_BASE_OFFSET-1 maps onto. This effectively creates an offset for the DDRAM from system perspective */
@@ -86,7 +106,11 @@
 #define HIVE_GP_REGS_SWITCH_GDC2_IDX                           18
 #define HIVE_GP_REGS_SRST_IDX                                  19
 #define HIVE_GP_REGS_SLV_REG_SRST_IDX                          20
+#ifndef ISP2401
 #define HIVE_GP_REGS_VISA_REG_IDX                              21
+#else
+#define HIVE_GP_REGS_SWITCH_ISYS_IDX                           21
+#endif
 
 /* Bit numbers of the soft reset register */
 #define HIVE_GP_REGS_SRST_ISYS_CBUS                             0
@@ -120,6 +144,9 @@
 #define HIVE_GP_REGS_SRST_WBUS                                 28
 #define HIVE_GP_REGS_SRST_IC_OSYS                              29
 #define HIVE_GP_REGS_SRST_WBUS_IC                              30
+#ifdef ISP2401
+#define HIVE_GP_REGS_SRST_ISYS_INP_BUF_BUS                     31
+#endif
 
 /* Bit numbers of the slave register soft reset register */
 #define HIVE_GP_REGS_SLV_REG_SRST_DMA                           0
@@ -147,7 +174,11 @@
 #define HIVE_GP_DEV_IRQ_SP_STREAM_MON_BIT_ID                   17
 #define HIVE_GP_DEV_IRQ_ISP_STREAM_MON_BIT_ID                  18
 #define HIVE_GP_DEV_IRQ_MOD_STREAM_MON_BIT_ID                  19
+#ifndef ISP2401
 #define HIVE_GP_DEV_IRQ_ISP_PMEM_ERROR_BIT_ID                  20
+#else
+#define HIVE_GP_DEV_IRQ_IS2401_BIT_ID                          20
+#endif
 #define HIVE_GP_DEV_IRQ_ISP_BAMEM_ERROR_BIT_ID                 21
 #define HIVE_GP_DEV_IRQ_ISP_DMEM_ERROR_BIT_ID                  22
 #define HIVE_GP_DEV_IRQ_SP_ICACHE_MEM_ERROR_BIT_ID             23
@@ -222,7 +253,11 @@
 #define HIVE_GP_TIMER_SP_B_STRMON_IRQ                          16
 #define HIVE_GP_TIMER_ISP_STRMON_IRQ                           17
 #define HIVE_GP_TIMER_MOD_STRMON_IRQ                           18
+#ifndef ISP2401
 #define HIVE_GP_TIMER_ISP_PMEM_ERROR_IRQ                       19
+#else
+#define HIVE_GP_TIMER_IS2401_IRQ                               19
+#endif
 #define HIVE_GP_TIMER_ISP_BAMEM_ERROR_IRQ                      20
 #define HIVE_GP_TIMER_ISP_DMEM_ERROR_IRQ                       21
 #define HIVE_GP_TIMER_SP_ICACHE_MEM_ERROR_IRQ                  22
@@ -263,6 +298,9 @@
 #define HIVE_GP_TIMER_MIPI_SOF_BIT_ID                          57
 #define HIVE_GP_TIMER_MIPI_EOF_BIT_ID                          58
 #define HIVE_GP_TIMER_INPSYS_SM                                59
+#ifdef ISP2401
+#define HIVE_GP_TIMER_ISP_PMEM_ERROR_IRQ                       60
+#endif
 
 /* port definitions for the streaming monitors */
 /* port definititions SP streaming monitor, monitors the status of streaming ports at the SP side of the streaming FIFO's */
@@ -393,6 +431,12 @@
 #define HIVE_TESTBENCH_ISP_DMEM_ERROR_IRQ_REG_IDX              11
 #define HIVE_TESTBENCH_SP_ICACHE_MEM_ERROR_IRQ_REG_IDX         12
 #define HIVE_TESTBENCH_SP_DMEM_ERROR_IRQ_REG_IDX               13
+
+#ifdef ISP2401
+#define HIVE_TESTBENCH_MIPI_PARPATHEN_REG_IDX                  14
+#define HIVE_TESTBENCH_FB_HPLL_FREQ_REG_IDX                    15
+#define HIVE_TESTBENCH_ISCLK_RATIO_REG_IDX                     16
+#endif
 
 /* Signal monitor input bit ids */
 #define HIVE_TESTBENCH_SIG_MON_GPIO_PIN_O_BIT_ID                0
