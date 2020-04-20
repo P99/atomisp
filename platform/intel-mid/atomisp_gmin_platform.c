@@ -17,14 +17,12 @@
 
 #define MAX_SUBDEVS 8
 
+#define DEVNAME_PMIC_AXP "INT33F4:00"
+#define DEVNAME_PMIC_TI  "INT33F5:00"
+#define DEVNAME_PMIC_CRYSTALCOVE "INT33FD:00"
+
 #define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
 #define VLV2_CLK_FREQ 19200000 /* 19,2MHz */
-#define ELDO1_SEL_REG	0x19
-#define ELDO1_1P8V	0x16
-#define ELDO1_CTRL_SHIFT 0x00
-#define ELDO2_SEL_REG	0x1a
-#define ELDO2_1P8V	0x16
-#define ELDO2_CTRL_SHIFT 0x01
 
 struct gmin_subdev {
 	struct v4l2_subdev *subdev;
@@ -228,6 +226,21 @@ static struct gmin_cfg_var t100_vars[] = {
 	{},
 };
 
+static const struct gmin_cfg_var cht_cr_vars[] = {
+    /* For MRD front camera ov2680 with MRD default BIOS */
+    { "OVTI2680:00_CamClk",          "2" },
+    { "OVTI2680:00_ClkSrc",          "0" },
+    { "OVTI2680:00_CsiPort",         "1" },
+    { "OVTI2680:00_CsiLanes",        "1" },
+
+    /* For MRD rear camera ov2680 with MRD default BIOS */
+    { "OVTI2680:01_CamClk",          "4" },
+    { "OVTI2680:01_ClkSrc",          "0" },
+    { "OVTI2680:01_CsiPort",         "0" },
+    { "OVTI2680:01_CsiLanes",        "1" },
+    {},
+};
+
 static struct gmin_cfg_var mrd7_vars[] = {
 	{"INT33F8:00_CamType", "1"},
 	{"INT33F8:00_CsiPort", "1"},
@@ -284,6 +297,13 @@ static const struct dmi_system_id gmin_vars[] = {
 		},
 		.driver_data = t100_vars,
 	},
+    {
+        .ident = "Cherry Trail CR",
+        .matches = {
+            DMI_MATCH(DMI_BOARD_NAME, "TRT-4380-08"),
+        },
+        .driver_data = cht_cr_vars,
+    },
 	{
 		.ident = "MRD7",
 		.matches = {
@@ -318,14 +338,32 @@ static const struct dmi_system_id gmin_vars[] = {
 #define GMIN_PMC_CLK_NAME 14 /* "pmc_plt_clk_[0..5]" */
 static char gmin_pmc_clk_name[GMIN_PMC_CLK_NAME];
 
+static int match_i2c_name(struct device *dev, void *name)
+{
+    return !strcmp(to_i2c_client(dev)->name, (char *)name);
+}
+
+static bool i2c_dev_exists(char *name)
+{
+    return !!bus_find_device(&i2c_bus_type, NULL, name, match_i2c_name);
+}
+
 static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
 {
 	int i, ret;
 	struct device *dev;
 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
 
-	if (!pmic_id)
-		pmic_id = PMIC_REGULATOR;
+    if (!pmic_id) {
+        if (i2c_dev_exists(DEVNAME_PMIC_AXP))
+            pmic_id = PMIC_AXP;
+        else if (i2c_dev_exists(DEVNAME_PMIC_TI))
+            pmic_id = PMIC_TI;
+        else if (i2c_dev_exists(DEVNAME_PMIC_CRYSTALCOVE))
+            pmic_id = PMIC_CRYSTALCOVE;
+        else
+            pmic_id = PMIC_REGULATOR;
+    }
 
 	if (!client)
 		return NULL;
@@ -491,6 +529,11 @@ static int gmin_v1p8_ctrl(struct v4l2_subdev *subdev, int on)
 			return regulator_disable(gs->v1p8_reg);
 	}
 
+    /* Handle by ACPI */
+    if (pmic_id == PMIC_AXP)
+        return 0;
+
+    pr_err("gmin_v1p8_ctrl failed.\n");
 	return -EINVAL;
 }
 
@@ -527,6 +570,11 @@ static int gmin_v2p8_ctrl(struct v4l2_subdev *subdev, int on)
 			return regulator_disable(gs->v2p8_reg);
 	}
 
+    /* Handle by ACPI */
+    if (pmic_id == PMIC_AXP)
+        return 0;
+
+    pr_err("gmin_v2p8_ctrl failed.\n");
 	return -EINVAL;
 }
 
