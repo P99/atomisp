@@ -1115,6 +1115,7 @@ static bool is_valid_device(struct pci_dev *dev,
 	case ATOMISP_PCI_DEVICE_SOC_BYT:
 		a0_max_id = ATOMISP_PCI_REV_BYT_A0_MAX;
 		break;
+	case ATOMISP_PCI_DEVICE_SOC_CHT:
 	default:
 		return true;
 	}
@@ -1218,6 +1219,8 @@ static int atomisp_pci_probe(struct pci_dev *dev,
 	/* This is not a true PCI device on SoC, so the delay is not needed. */
 	isp->pdev->d3_delay = 0;
 
+	dev_info(&dev->dev, "atomisp: device %08X revision %u\n", id->device, isp->pdev->revision);
+
 	switch (id->device & ATOMISP_PCI_DEVICE_SOC_MASK) {
 	case ATOMISP_PCI_DEVICE_SOC_MRFLD:
 		isp->media_dev.hw_revision =
@@ -1288,8 +1291,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
 			 ATOMISP_HW_REVISION_ISP2401_LEGACY
 #endif
 			<< ATOMISP_HW_REVISION_SHIFT);
-		isp->media_dev.hw_revision |= isp->pdev->revision < 2 ?
-			 ATOMISP_HW_STEPPING_A0 : ATOMISP_HW_STEPPING_B0;
+		isp->media_dev.hw_revision |= ATOMISP_HW_STEPPING_A0;
 
 		isp->dfs = &dfs_config_cht;
 		isp->pdev->d3cold_delay = 0;
