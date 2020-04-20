@@ -185,7 +185,10 @@ sh_css_check_firmware_version(const char *fw_data)
 	file_header = &firmware_header->file_header;
 
 	if (strcmp(file_header->version, release_version) != 0) {
-		return false;
+		printk("Warning: atomisp CSS code version (%s) and firmware version (%s) mismatch! Trying to load it anyway",
+			file_header->version, release_version);
+		//return false;
+		return true;
 	} else {
 		/* firmware version matches */
 		return true;
