@@ -39,9 +39,6 @@
 #include "ia_css_isp_param.h"
 #include "sh_css_params.h"
 #include "ia_css_bufq.h"
-#ifdef ISP2401
-#include "ia_css_queue.h"
-#endif
 
 #include "ia_css_isp_params.h"
 
@@ -49,9 +46,6 @@
 #include "assert_support.h"
 #include "print_support.h"
 #include "string_support.h"
-#ifdef ISP2401
-#include "ia_css_system_ctrl.h"
-#endif
 
 #include "fifo_monitor.h"
 

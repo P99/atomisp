@@ -2697,7 +2697,6 @@ ia_css_pipe_get_isp_config(struct ia_css_pipe *pipe,
 	IA_CSS_LEAVE("void");
 }
 
-#ifndef ISP2401
 /*
  * coding style says the return of "mmgr_NULL" is the error signal
  *
@@ -2762,8 +2761,6 @@ static bool reallocate_buffer(
 	IA_CSS_LEAVE_PRIVATE("ret=%d", ret);
 	return ret;
 }
-
-#endif
 
 struct ia_css_isp_3a_statistics *
 ia_css_isp_3a_statistics_allocate(const struct ia_css_3a_grid_info *grid)
@@ -3128,9 +3125,9 @@ sh_css_init_isp_params_from_global(struct ia_css_stream *stream,
 
 		ia_css_sdis_clear_coefficients(&params->dvs_coefs);
 		params->dis_coef_table_changed = true;
-#ifdef ISP2401
-		ia_css_tnr3_set_default_config(&params->tnr3_config);
-#endif
+        // is missing
+		// ia_css_tnr3_set_default_config(&params->tnr3_config);
+
 	}
 	else
 	{
@@ -3928,9 +3925,7 @@ sh_css_param_update_isp_params(struct ia_css_pipe *curr_pipe,
 			 */
 			g_param_buffer_enqueue_count++;
 			assert(g_param_buffer_enqueue_count < g_param_buffer_dequeue_count+50);
-#ifdef ISP2401
-			ia_css_save_latest_paramset_ptr(pipe, cpy);
-#endif
+
 			/*
 			 * Tell the SP which queues are not empty,
 			 * by sending the software event.

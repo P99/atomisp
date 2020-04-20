@@ -1042,7 +1042,6 @@ void atomisp_buf_done(struct atomisp_sub_device *asd, int error,
 						err);
 			} else {
 				asd->re_trigger_capture = true;
-			}
 #endif
 		}
 		break;
@@ -1200,6 +1199,15 @@ void atomisp_buf_done(struct atomisp_sub_device *asd, int error,
 			atomisp_css_update_isp_params(asd);
 		}
 		break;
+	case IA_CSS_BUFFER_TYPE_INVALID:
+	case IA_CSS_BUFFER_TYPE_INPUT_FRAME:
+	case IA_CSS_BUFFER_TYPE_RAW_OUTPUT_FRAME:
+	case IA_CSS_BUFFER_TYPE_CUSTOM_INPUT:
+	case IA_CSS_BUFFER_TYPE_CUSTOM_OUTPUT:
+	case IA_CSS_BUFFER_TYPE_PARAMETER_SET:
+	case IA_CSS_BUFFER_TYPE_PER_FRAME_PARAMETER_SET:
+	case IA_CSS_NUM_DYNAMIC_BUFFER_TYPE:
+	case IA_CSS_NUM_BUFFER_TYPE:
 	default:
 		break;
 	}

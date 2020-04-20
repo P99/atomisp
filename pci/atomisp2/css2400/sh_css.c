@@ -1492,7 +1492,6 @@ sh_css_invalidate_shading_tables(struct ia_css_stream *stream)
 		"sh_css_invalidate_shading_tables() leave: return_void\n");
 }
 
-#ifndef ISP2401
 static void
 enable_interrupts(enum ia_css_irq_type irq_type)
 {
@@ -1533,7 +1532,6 @@ enable_interrupts(enum ia_css_irq_type irq_type)
 	IA_CSS_LEAVE_PRIVATE("");
 }
 
-#endif
 
 static bool sh_css_setup_spctrl_config(const struct ia_css_fw_info *fw,
 							const char * program,
@@ -1705,11 +1703,7 @@ ia_css_init(const struct ia_css_env *env,
 	enable = gpio_reg_load(GPIO0_ID, _gpio_block_reg_do_e)
 							| GPIO_FLASH_PIN_MASK;
 	sh_css_mmu_set_page_table_base_index(mmu_l1_base);
-#ifndef ISP2401
 	my_css_save.mmu_base = mmu_l1_base;
-#else
-	ia_css_save_mmu_base_addr(mmu_l1_base);
-#endif
 
 	ia_css_reset_defaults(&my_css);
 
@@ -1722,13 +1716,8 @@ ia_css_init(const struct ia_css_env *env,
 		return err;
 	}
 
-#ifndef ISP2401
 	IA_CSS_LOG("init: %d", my_css_save_initialized);
-#else
-	ia_css_save_restore_data_init();
-#endif
 
-#ifndef ISP2401
 	if (!my_css_save_initialized)
 	{
 		my_css_save_initialized = true;
@@ -1736,21 +1725,14 @@ ia_css_init(const struct ia_css_env *env,
 		memset(my_css_save.stream_seeds, 0, sizeof(struct sh_css_stream_seed) * MAX_ACTIVE_STREAMS);
 		IA_CSS_LOG("init: %d mode=%d", my_css_save_initialized, my_css_save.mode);
 	}
-#endif
 	mipi_init();
 
-#ifndef ISP2401
 	/* In case this has been programmed already, update internal
 	   data structure ... DEPRECATED */
 	my_css.page_table_base_index = mmu_get_page_table_base_index(MMU0_ID);
 
-#endif
 	my_css.irq_type = irq_type;
-#ifndef ISP2401
 	my_css_save.irq_type = irq_type;
-#else
-	ia_css_save_irq_type(irq_type);
-#endif
 	enable_interrupts(my_css.irq_type);
 
 	/* configure GPIO to output mode */
@@ -1782,9 +1764,7 @@ ia_css_init(const struct ia_css_env *env,
 			return err;
 		}
 		fw_explicitly_loaded = false;
-#ifndef ISP2401
 		my_css_save.loaded_fw = (struct ia_css_fw *)fw;
-#endif
 	}
 	if(!sh_css_setup_spctrl_config(&sh_css_sp_fw,SP_PROG_NAME,&spctrl_cfg))
 		return IA_CSS_ERR_INTERNAL_ERROR;
@@ -9761,7 +9741,6 @@ ia_css_stream_create(const struct ia_css_stream_config *stream_config,
 	*stream = curr_stream;
 
 ERR:
-#ifndef ISP2401
 	if (err == IA_CSS_SUCCESS)
 	{
 		/* working mode: enter into the seed list */
@@ -9781,18 +9760,10 @@ ERR:
 					break;
 			}
 		}
-#else
-	if (err == IA_CSS_SUCCESS) {
-		err = ia_css_save_stream(curr_stream);
-#endif
 	} else {
 		ia_css_stream_destroy(curr_stream);
 	}
-#ifndef ISP2401
 	IA_CSS_LEAVE("return_err=%d mode=%d", err, my_css_save.mode);
-#else
-	IA_CSS_LEAVE("return_err=%d", err);
-#endif
 	return err;
 }
 
@@ -9801,10 +9772,6 @@ ia_css_stream_destroy(struct ia_css_stream *stream)
 {
 	int i;
 	enum ia_css_err err = IA_CSS_SUCCESS;
-#ifdef ISP2401
-	enum ia_css_err err1 = IA_CSS_SUCCESS;
-	enum ia_css_err err2 = IA_CSS_SUCCESS;
-#endif
 
 	IA_CSS_ENTER_PRIVATE("stream = %p", stream);
 	if (stream == NULL) {
@@ -9841,13 +9808,7 @@ ia_css_stream_destroy(struct ia_css_stream *stream)
 				}
 			}
 		}
-#ifndef ISP2401
 		if (stream->config.mode == IA_CSS_INPUT_MODE_BUFFERED_SENSOR) {
-#else
-		if (stream->config.mode == IA_CSS_INPUT_MODE_BUFFERED_SENSOR ||
-			stream->config.mode == IA_CSS_INPUT_MODE_TPG ||
-			stream->config.mode == IA_CSS_INPUT_MODE_PRBS) {
-#endif
 			for (i = 0; i < stream->num_pipes; i++) {
 				struct ia_css_pipe *entry = stream->pipes[i];
 				/* free any mipi frames that are remaining:
@@ -9899,7 +9860,6 @@ ia_css_stream_destroy(struct ia_css_stream *stream)
 	kfree(stream->pipes);
 	stream->pipes = NULL;
 	stream->num_pipes = 0;
-#ifndef ISP2401
 	/* working mode: take out of the seed list */
 	if (my_css_save.mode == sh_css_mode_working)
 		for(i=0;i<MAX_ACTIVE_STREAMS;i++)
@@ -9909,23 +9869,10 @@ ia_css_stream_destroy(struct ia_css_stream *stream)
 				my_css_save.stream_seeds[i].stream = NULL;
 				break;
 			}
-#else
-	err2 = ia_css_save_restore_remove_stream(stream);
-
-	err1 = (err != IA_CSS_SUCCESS) ? err : err2;
-#endif
 	kfree(stream);
-#ifndef ISP2401
 	IA_CSS_LEAVE_ERR(err);
-#else
-	IA_CSS_LEAVE_ERR(err1);
-#endif
 
-#ifndef ISP2401
-	return err;
-#else
 	return err1;
-#endif
 }
 
 enum ia_css_err
@@ -9949,7 +9896,6 @@ ia_css_stream_get_info(const struct ia_css_stream *stream,
 enum ia_css_err
 ia_css_stream_load(struct ia_css_stream *stream)
 {
-#ifndef ISP2401
 	int i;
 	enum ia_css_err err;
 	assert(stream != NULL);
@@ -9982,11 +9928,6 @@ ia_css_stream_load(struct ia_css_stream *stream)
 	}
 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_load() exit, \n");
 	return IA_CSS_SUCCESS;
-#else
-	/* TODO remove function - DEPRECATED */
-	(void)stream;
-	return IA_CSS_ERR_NOT_SUPPORTED;
-#endif
 }
 
 enum ia_css_err
@@ -10097,7 +10038,6 @@ ia_css_stream_has_stopped(struct ia_css_stream *stream)
 	return stopped;
 }
 
-#ifndef ISP2401
 /*
  * Destroy the stream and all the pipes related to it.
  * The stream handle is used to identify the correct entry in the css_save struct
@@ -10125,7 +10065,6 @@ ia_css_stream_unload(struct ia_css_stream *stream)
 	return IA_CSS_SUCCESS;
 }
 
-#endif
 enum ia_css_err
 ia_css_temp_pipe_to_pipe_id(const struct ia_css_pipe *pipe, enum ia_css_pipe_id *pipe_id)
 {
@@ -10409,11 +10348,6 @@ ia_css_start_sp(void)
 	sh_css_setup_queues();
 	ia_css_bufq_dump_queue_info();
 
-#ifdef ISP2401
-	if (ia_css_is_system_mode_suspend_or_resume() == false) { /* skip in suspend/resume flow */
-		ia_css_set_system_mode(IA_CSS_SYS_MODE_WORKING);
-	}
-#endif
 	IA_CSS_LEAVE_ERR(err);
 	return err;
 }
@@ -10477,16 +10411,8 @@ ia_css_stop_sp(void)
 
 	sh_css_hmm_buffer_record_uninit();
 
-#ifndef ISP2401
 	/* clear pending param sets from refcount */
 	sh_css_param_clear_param_sets();
-#else
-	if (ia_css_is_system_mode_suspend_or_resume() == false) { /* skip in suspend/resume flow */
-		/* clear pending param sets from refcount */
-		sh_css_param_clear_param_sets();
-		ia_css_set_system_mode(IA_CSS_SYS_MODE_INIT);  /* System is initialized but not 'running' */
-	}
-#endif
 
 	IA_CSS_LEAVE_ERR(err);
 	return err;
@@ -10985,15 +10911,8 @@ sh_css_hmm_buffer_record_init(void)
 {
 	int i;
 
-#ifndef ISP2401
 	for (i = 0; i < MAX_HMM_BUFFER_NUM; i++) {
 		sh_css_hmm_buffer_record_reset(&hmm_buffer_record[i]);
-#else
-	if (ia_css_is_system_mode_suspend_or_resume() == false) { /* skip in suspend/resume flow */
-		for (i = 0; i < MAX_HMM_BUFFER_NUM; i++) {
-			sh_css_hmm_buffer_record_reset(&hmm_buffer_record[i]);
-		}
-#endif
 	}
 }
 
@@ -11003,28 +10922,14 @@ sh_css_hmm_buffer_record_uninit(void)
 	int i;
 	struct sh_css_hmm_buffer_record *buffer_record = NULL;
 
-#ifndef ISP2401
 	buffer_record = &hmm_buffer_record[0];
 	for (i = 0; i < MAX_HMM_BUFFER_NUM; i++) {
 		if (buffer_record->in_use) {
 			if (buffer_record->h_vbuf != NULL)
 				ia_css_rmgr_rel_vbuf(hmm_buffer_pool, &buffer_record->h_vbuf);
 			sh_css_hmm_buffer_record_reset(buffer_record);
-#else
-	if (ia_css_is_system_mode_suspend_or_resume() == false) { /* skip in suspend/resume flow */
-		buffer_record = &hmm_buffer_record[0];
-		for (i = 0; i < MAX_HMM_BUFFER_NUM; i++) {
-			if (buffer_record->in_use) {
-				if (buffer_record->h_vbuf != NULL)
-					ia_css_rmgr_rel_vbuf(hmm_buffer_pool, &buffer_record->h_vbuf);
-				sh_css_hmm_buffer_record_reset(buffer_record);
-			}
-			buffer_record++;
-#endif
 		}
-#ifndef ISP2401
 		buffer_record++;
-#endif
 	}
 }
 
