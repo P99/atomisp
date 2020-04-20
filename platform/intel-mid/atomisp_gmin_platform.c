@@ -18,6 +18,7 @@
 #define MAX_SUBDEVS 8
 
 #define VLV2_CLK_PLL_19P2MHZ 1 /* XTAL on CHT */
+#define VLV2_CLK_FREQ 19200000 /* 19,2MHz */
 #define ELDO1_SEL_REG	0x19
 #define ELDO1_1P8V	0x16
 #define ELDO1_CTRL_SHIFT 0x00
@@ -539,11 +540,11 @@ static int gmin_flisclk_ctrl(struct v4l2_subdev *subdev, int on)
 		return 0;
 
 	if (on) {
-		ret = clk_set_rate(gs->pmc_clk, gs->clock_src);
+        unsigned long rate = (unsigned long)VLV2_CLK_FREQ * 1000;
+        ret = clk_set_rate(gs->pmc_clk, rate);
 
 		if (ret)
-			dev_err(&client->dev, "unable to set PMC rate %d\n",
-				gs->clock_src);
+			dev_err(&client->dev, "unable to set PMC rate %lu\n", rate);
 
 		ret = clk_prepare_enable(gs->pmc_clk);
 		if (ret == 0)
